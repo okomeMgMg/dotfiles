@@ -1,0 +1,208 @@
+# LastModified: 2016/03/22
+
+################################################
+# for MacOS X
+################################################
+
+## HomeBrew
+#
+export PATH=/usr/local/bin:/usr/local/sbin:$PATH
+# HomeBrew Man
+export MANPATH=/usr/local/man:/usr/share/man:$MANPATH
+
+## rbenv
+##
+export RBENV_ROOT="/usr/local/var/rbenv"
+if [ -d $RBENV_ROOT ]; then
+  export PATH="$RBENV_ROOT/bin:$PATH"
+  if which rbenv > /dev/null; then eval "$(rbenv init - zsh)"; fi
+fi
+
+## pyenv
+#
+export PYENV_ROOT=/usr/local/var/pyenv
+export PATH=/usr/local/bin:/usr/local/share/python:$PATH
+if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
+if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
+
+## Gemfile
+##
+RUBYGEMS_GEMDEPS=-
+# -: search Gemfile from current directory to ancestor
+
+## nodebrew
+##
+nodebrew=$HOME/.nodebrew/current/bin
+if [ -d "$nodebrew" ]; then
+  export PATH=$nodebrew:$PATH
+  nodebrew use stable > /dev/null
+fi
+
+## Alias
+#
+if [ -e /usr/local/bin/gls ]; then
+  alias ls="gls --color=auto -F"
+else
+  alias ls="ls -GF"
+fi
+
+if [ -x "`which vim`" ]; then
+  alias vim="/usr/local/bin/vim"
+fi
+
+alias b='brew'
+alias bi='brew info'
+alias bl='brew list'
+alias bs='brew -S'
+alias bug='brew update && brew upgrade'
+
+alias gibol='gibo -l | sed "/=/d" | tr "\t", "\n" | sed "/^$/d" | sort | peco | xargs gibo'
+alias subl='/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl'
+
+alias mute_volume='osascript -e "set Volume 0"'
+alias max_volume='osascript -e "set Volume 10"'
+alias jnethack="cocot -t UTF-8 -p EUC-JP -- /usr/local/bin/jnethack"
+
+# Pygments
+if [ -x "`which pygmentize`" ]; then
+  alias c='pygmentize -O style=monokai -f console256 -g'
+fi
+
+# with Line numbers
+alias -g L='| nl -n ln -b a'
+
+## ccze
+# Robust and modular log colorizer
+# https://packages.debian.org/wheezy/ccze
+if [ -x "`which ccze`" ]; then
+  alias -g C="| ccze -A"
+fi
+
+## Completion configuration
+#
+if [ -d /usr/local/share/zsh-completions ]; then
+  fpath=(/usr/local/share/zsh-completions $fpath)
+fi
+autoload -U compinit
+compinit -C
+
+## Google Cloud SDK
+# brew cask install google-cloud-sdk
+#
+if [ -f /opt/homebrew-cask/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc ]; then
+  source /opt/homebrew-cask/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc
+  source /opt/homebrew-cask/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc
+fi
+
+## Go
+#
+if [ -x "`which go`" ]; then
+  export GOPATH=$HOME/go/
+  export GOROOT=`go env GOROOT`
+  export PATH=$PATH:$GOPATHbin:$GOROOT/bin
+fi
+
+## Peco
+# brew tap peco/peco
+#
+if [ -x "`which peco`" ]; then
+  alias top='top | peco'
+  alias ps='ps aux | peco'
+  alias -g P='| peco'
+
+  function peco-select-history () {
+    local tac
+    if which gtac > /dev/null; then
+      tac="gtac"
+    elif which tac > /dev/null; then
+      tac="tac"
+    else
+      tac="tail -r"
+    fi
+    BUFFER=$(\history -n 1 | eval $tac | peco --query "$LBUFFER")
+    CURSOR=$#BUFFER # move cursor
+    #zle -R -c       # refresh
+  }
+  zle -N peco-select-history
+
+  function peco-cdr () {
+    local selected_dir=$(cdr -l | awk '{ print $2 }' | peco)
+    if [ -n "$selected_dir" ]; then
+      BUFFER="cd ${selected_dir}"
+      zle accept-line
+    fi
+    #zle -R -c
+  }
+  zle -N peco-cdr
+
+  bindkey '^r' peco-select-history
+  bindkey '^j' peco-cdr
+fi
+
+## z.sh (https://github.com/rupa/z)
+# brew install z
+# like autojump
+#
+if [ -f `brew --prefix`/etc/profile.d/z.sh ]; then
+  source `brew --prefix`/etc/profile.d/z.sh
+  _Z_CMD=j
+  compctl -U -K _z_zsh_tab_completion "$_Z_CMD"
+fi
+
+## zsh-history-substring-search
+# brew install zsh-history-substring-search
+#
+if [ -f /usr/local/opt/zsh-history-substring-search/zsh-history-substring-search.zsh ]; then
+  source /usr/local/opt/zsh-history-substring-search/zsh-history-substring-search.zsh
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+fi
+
+## MObileSHell
+#
+compdef mosh=ssh
+
+## Git
+#
+compdef g=git
+
+## Haxe
+#
+export HAXE_STD_PATH="/usr/local/lib/haxe/std"
+
+## Heroku
+#
+export PATH="/usr/local/heroku/bin:$PATH"
+
+## translate-shell
+# https://github.com/soimort/translate-shell
+if [ -x "`which trans`" ]; then
+  alias -g T='| trans :ja'
+fi
+
+## iTerm2 Shell Integration
+#
+test -e ${HOME}/.iterm2_shell_integration.zsh && source ${HOME}/.iterm2_shell_integration.zsh
+
+## Powerline
+# pip install --user powerline-status
+if [ -d ~/.local/bin ]; then
+  export PATH="$PATH":~/.local/bin
+  powerline-daemon -q
+  . ~/.local/lib/python3.5/site-packages/powerline/bindings/zsh/powerline.zsh
+fi
+
+## Setting of each machine
+#
+if [ -f ~/.zshrc.machine ]; then
+  source ~/.zshrc.machine
+fi
+
+## Login Message
+#
+
+## Zsh launch Time measurement END
+#
+#if type zprof > /dev/null 2>&1; then
+#  zprof | ccze -A
+#fi
